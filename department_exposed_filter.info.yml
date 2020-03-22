@@ -1,0 +1,6 @@
+name: Department Exposed Filter
+type: module
+description: 'Shows only a list of department terms from the sitemap term list as an exposed filter'
+package: Custom
+core: 8.x
+project: department_exposed_filter

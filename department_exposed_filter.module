@@ -1,0 +1,42 @@
+<?php
+/**
+ * @file
+ * Contains department_exposed_filter.module.
+ */
+
+use Drupal\Core\Database\Database;
+
+/**
+ * Implements hook_form_FORM_ID_form_alter().
+ */
+function department_exposed_filter_form_views_exposed_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state)
+{
+  // If the exposed filter does not exist on this form, there's nothing we can do here.
+
+  if (!array_key_exists('department_list', $form)) {
+    return;
+  }
+
+  // Options are department entity id => title.
+  $options = $form['department_list']['#options'];
+
+  //Searching for department in sitemap vocabulary that are matched with the field_department list in document content type
+  $connection = Database::getConnection();
+  $sth = $connection->select('node__field_department', 'dept');
+  $sth->addField('dept', 'field_department_target_id');
+  $sth->condition('bundle', 'documents');
+  $sth->distinct();
+
+  $data = $sth->execute();
+
+  // Flip the result set so the array key is the tag entity id.
+  $results = array_flip($data->fetchAll(\PDO::FETCH_COLUMN, 'field_department_target_id'));
+
+  // Intersects the arrays, giving us back an "filtered" array.
+  $options = array_intersect_key($options, $results);
+
+  $options = array('All' => "-Any-")+ $options;
+
+  // Replace the options.
+  $form['department_list']['#options'] = $options;
+}
